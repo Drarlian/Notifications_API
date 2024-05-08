@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 from bson import ObjectId
+from typing import List
 
 
 # Função para Fechar a Conexão com o Banco de Dados
@@ -39,13 +40,13 @@ db = client["notifications"]  # -> Nome do Banco de Dados do Projeto.
 
 
 class Message(BaseModel):
-    title: str
-    message: str
+    title: List[str]
+    message: List[str]
 
 
 class UpdateMessage(BaseModel):
-    title: str = None
-    message: str = None
+    title: List[str] = None
+    message: List[str] = None
 
 
 # ADMISSIONS MESSAGES
@@ -86,15 +87,15 @@ async def get_message_admission_by_id(id_message: str):
 async def create_message_admissions(type_message: str, message: Message):
     if type_message not in ['candidate', 'admin']:
         return json.dumps({"error": "Type must be 'candidate' or 'admin'"})
+    if len(message.title) != len(message.message):
+        return json.dumps({"error": "Numbers of titles and messages do not match"})
 
     try:
-        if type_message == 'candidate':
-            await db.messages.insert_one({"type": "admissions_candidate", "title": message.title,
-                                          "message": message.message, "created_date": datetime.now()})
-        else:  # -> type_message == 'admin'
-            await db.messages.insert_one({"type": "admissions_admin", "title": message.title,
-                                          "message": message.message, "created_date": datetime.now()})
-    except:
+        tipo: str = "admissions_candidate" if type_message == "candidate" else "admissions_admin"
+        await db.messages.insert_one({"type": tipo, "title": message.title, "message": message.message,
+                                      "created_date": datetime.now()})
+    except Exception as e:
+        print(e)
         return {"message": "Can't create message"}
     else:
         return {"message": "Admissions message created"}
@@ -103,6 +104,16 @@ async def create_message_admissions(type_message: str, message: Message):
 @app.patch("/message/admissions/{id_message}")
 async def update_message_admissions(id_message: str, message: UpdateMessage):
     message = message.dict(exclude_unset=True)
+
+    old_message = await get_message_admission_by_id(id_message)
+    if old_message["message"] == "Internal Error":
+        return {"message": "Internal Error"}
+
+    # Verificar se o novo campo title ou message tem o mesmo tamanho do antigo title/mensage
+    if "title" in message.keys() and (len(message["title"]) != len(old_message["title"])):
+        return {"error": "Title length does not match"}
+    if "message" in message.keys() and (len(message["message"]) != len(old_message["message"])):
+        return {"error": "Message length does not match"}
 
     try:
         request = await db.messages.update_one({"_id": ObjectId(id_message)}, {"$set": message})
