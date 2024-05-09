@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import json
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import os
@@ -51,7 +50,7 @@ class UpdateMessage(BaseModel):
 
 # ADMISSIONS MESSAGES
 @app.get("/message/admissions/all/{type_message}")
-async def get_all_messages_admission(type_message: str):
+async def get_all_admissions_messages(type_message: str):
     # type_message -> candidate | admin
     if type_message not in ['candidate', 'admin']:
         return {"message": "Type must be 'candidate' or 'admin'"}
@@ -70,7 +69,7 @@ async def get_all_messages_admission(type_message: str):
 
 
 @app.get("/message/admissions/{id_message}")
-async def get_message_admission_by_id(id_message: str):
+async def get_admissions_message_by_id(id_message: str):
     try:
         # Convertendo a string para ObjectId
         obj_id = ObjectId(id_message)
@@ -84,11 +83,11 @@ async def get_message_admission_by_id(id_message: str):
 
 
 @app.post("/message/admissions/{type_message}")
-async def create_message_admissions(type_message: str, message: Message):
+async def create_admissions_message(type_message: str, message: Message):
     if type_message not in ['candidate', 'admin']:
-        return json.dumps({"error": "Type must be 'candidate' or 'admin'"})
+        return {"error": "Type must be 'candidate' or 'admin'"}
     if len(message.title) != len(message.message):
-        return json.dumps({"error": "Numbers of titles and messages do not match"})
+        return {"error": "Numbers of titles and messages do not match"}
 
     try:
         tipo: str = "admissions_candidate" if type_message == "candidate" else "admissions_admin"
@@ -102,7 +101,7 @@ async def create_message_admissions(type_message: str, message: Message):
 
 
 @app.patch("/message/admissions/{id_message}")
-async def update_message_admissions(id_message: str, message: UpdateMessage):
+async def update_admissions_message(id_message: str, message: UpdateMessage):
     message = message.dict(exclude_unset=True)
 
     old_message = await get_message_admission_by_id(id_message)
@@ -132,7 +131,7 @@ async def update_message_admissions(id_message: str, message: UpdateMessage):
 
 
 @app.delete("/message/admissions/{id_message}")
-async def delete_message_admission_by_id(id_message: str):
+async def delete_admissions_message_by_id(id_message: str):
     try:
         request = await db.messages.delete_one({"_id": ObjectId(id_message)})
 
