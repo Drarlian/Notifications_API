@@ -49,8 +49,20 @@ class UpdateMessage(BaseModel):
 
 
 # ADMISSIONS MESSAGES
+@app.get("/message/admissions/all")
+async def get_all_admissions_messages():
+    try:
+        results = await db.messages.find().to_list(length=None)
+    except:
+        return {"message": "Internal Error"}
+    else:
+        for result in results:
+            result["_id"] = str(result["_id"])
+        return results
+
+
 @app.get("/message/admissions/all/{type_message}")
-async def get_all_admissions_messages(type_message: str):
+async def get_all_admissions_messages_by_type(type_message: str):
     # type_message -> candidate | admin
     if type_message not in ['candidate', 'admin']:
         return {"message": "Type must be 'candidate' or 'admin'"}
