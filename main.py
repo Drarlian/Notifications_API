@@ -116,7 +116,7 @@ async def create_admissions_message(type_message: str, message: Message):
 async def update_admissions_message(id_message: str, message: UpdateMessage):
     message = message.dict(exclude_unset=True)
 
-    old_message = await get_message_admission_by_id(id_message)
+    old_message = await get_admissions_message_by_id(id_message)
     if old_message["message"] == "Internal Error":
         return {"message": "Internal Error"}
 
