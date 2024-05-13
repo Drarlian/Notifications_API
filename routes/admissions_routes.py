@@ -58,7 +58,7 @@ async def get_all_admissions_messages_by_type(type_message: str) -> list | dict:
 @router.get("/message/admissions/{id_message}")
 async def get_admissions_message_by_id(id_message: str) -> dict:
     """
-    Recebeu um id e retorna a mensagem referente a ela.
+    Recebe um id e retorna a mensagem referente a ela.
     :param id_message: Id da mensagem desejada.
     :return: Mensagem no formato de objeto.
     """
